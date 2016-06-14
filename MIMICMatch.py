@@ -77,7 +77,8 @@ def find_semeval(semeval_file):
                                       if w in fd]
     except IOError:
         return (None, None)
-    for thres in [1., .95, .9, .85, .8, .75, .7, .65, .6, .55, .5]:
+    for intthres in range(100,49,-1):
+        thres = float(intthres) / 100.
         print 'Threshold', thres
         for notes_file in notes_files:
             print 'File', notes_file
@@ -85,32 +86,53 @@ def find_semeval(semeval_file):
                 with open(notes_file, 'r') as f:
                     ct = 0
                     st = []
+                    nextst = []
                     done = False
                     for line in f:
                         ct += 1
-                        if ct % 100000 == 0:
-                            print ct
+                        #if ct % 100000 == 0:
+                        #    print ct
                         if line.strip() == '</VISIT>' or done:
-                            row, text = read_visit(st, subject_id)
-                            if text:
-                                text = [w for s in nltk.sent_tokenize(text)
-                                        for w in nltk.word_tokenize(s.lower())
-                                        if w in fd]
-                                if difflib.SequenceMatcher(a=semeval_text,
-                                              b=text,
-                                              autojunk=False).ratio() >= thres:
-                                    return (notes_file, row, thres)
-                            st = nextst
-                            nextst = []
-                            done = False
+                            done = True
+                            while done:
+                                row, text = read_visit(st, subject_id)
+                                if text:
+                                    text = [w for s in nltk.sent_tokenize(text)
+                                                  for w in nltk.word_tokenize\
+                                                                    (s.lower())
+                                                      if w in fd]
+                                    if difflib.SequenceMatcher(a=semeval_text,
+                                                               b=text,
+                                                               autojunk=False
+                                                            ).ratio() >= thres:
+                                        out = (notes_file, row, thres)
+                                        print 'Found', out
+                                        return out
+                                st = nextst
+                                nextst = []
+                                if line.strip() == '</VISIT>' and st:
+                                    done = True
+                                else:
+                                    done = False
                         elif line.strip() != '<VISIT>':
                             content = line.strip()
                             if st and '"' in content:
                                 nextcontent = content[:content.find('"')]
-                                nextst = [content[content.find('"'):]]
+                                nextl = content[content.find('"')+1:].strip()
+                                if nextl:
+                                    nextl = nextl.split(',', 9)
+                                    nextst = [','.join(nextl[:9])]
+                                    if nextl[9:]:
+                                        nextst += nextl[9:]
                                 done = True
-                                content = nextcontent
-                            st += [content]
+                                st += [nextcontent]
+                            elif not st:
+                                content = content.split(',', 9)
+                                st = [','.join(content[:9])]
+                                if content[9:]:
+                                    st += content[9:]
+                            else:
+                                st += [content]
             except IOError:
                 pass
     return (None, None)
