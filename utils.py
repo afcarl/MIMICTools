@@ -1,3 +1,4 @@
+import random
 import re
 
 re_anon = re.compile(r'ANON__.*?__ANON')
@@ -17,31 +18,37 @@ def subset(seq, k):
                 numbersPicked += 1
 
 
-def treat_line(line):
+def treat_line(line, replace_anon):
     if 'ANON__' in line:
-        return re_anon.sub('<unk>', line)
+        return re_anon.sub(replace_anon, line)
     else:
         return line
 
 
-def treat_line_sem(line):
+def treat_line_sem(line, replace_anon):
     if '[**' in line:
-        return re_sem.sub('<unk>', line)
+        return re_sem.sub(replace_anon, line)
     else:
         return line
 
 
-def read_visit(lines, subject_id):
+def read_visit(lines, replace_anon):
     row_line = lines[0].split(',')
-    return (row_line, treat_line(' '.join(lines[1:])))
+    if replace_anon:
+        return (row_line, treat_line(' '.join(lines[1:]), replace_anon))
+    else:
+        return (row_line, ' '.join(lines[1:]))
 
 
-def read_visit_sem(lines):
+def read_visit_sem(lines, replace_anon):
     row_line = lines[0].split('||||')
-    return (row_line, treat_line_sem(' '.join(lines[1:])))
+    if replace_anon:
+        return (row_line, treat_line_sem(' '.join(lines[1:]), replace_anon))
+    else:
+        return (row_line, ' '.join(lines[1:]))
 
 
-def mimic_data(notes_files, verbose=False):
+def mimic_data(notes_files, replace_anon='<unk>', verbose=False):
     for notes_file in notes_files:
         if verbose:
             print 'MIMIC file', notes_file
@@ -58,7 +65,7 @@ def mimic_data(notes_files, verbose=False):
                     if line.strip() == '</VISIT>' or done:
                         done = True
                         while done:
-                            yield read_visit(st)
+                            yield read_visit(st, replace_anon)
                             st = nextst
                             nextst = []
                             if line.strip() == '</VISIT>' and st:
@@ -88,10 +95,10 @@ def mimic_data(notes_files, verbose=False):
             pass
 
 
-def semeval_data(semeval_files, verbose=False):
+def semeval_data(semeval_files, replace_anon='<unk>', verbose=False):
     for semeval_file in semeval_files:
         if verbose:
             print 'SemEval file', semeval_file
         with open(semeval_file, 'r') as f:
-            yield read_visit_sem([l.strip() for l in f])
+            yield read_visit_sem([l.strip() for l in f], replace_anon)
 
