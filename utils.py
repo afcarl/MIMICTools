@@ -48,7 +48,9 @@ def read_visit_sem(lines, replace_anon):
         return (row_line, ' '.join(lines[1:]))
 
 
-def mimic_data(notes_files, replace_anon='<unk>', verbose=False):
+def mimic_data(notes_files, replace_anon='<unk>', verbose=False,
+               super_verbose=False):
+    if super_verbose: verbose = True
     for notes_file in notes_files:
         if verbose:
             print 'MIMIC file', notes_file
@@ -60,8 +62,8 @@ def mimic_data(notes_files, replace_anon='<unk>', verbose=False):
                 done = False
                 for line in f:
                     ct += 1
-                    #if ct % 100000 == 0:
-                    #    print ct
+                    if super_verbose and ct % 100000 == 0:
+                        print ct
                     if line.strip() == '</VISIT>' or done:
                         done = True
                         while done:
