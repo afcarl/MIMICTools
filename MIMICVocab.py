@@ -15,16 +15,25 @@ mimic_dirs = sorted(glob.glob(mimic_dir + r'/[0-9]*'))
 notes_files = [d + '/NOTEEVENTS_DATA_TABLE.csv' for d in mimic_dirs]
 notes_files = [f for f in notes_files if os.path.isfile(f)]
 
-fix_re = re.compile(r'[^a-z0-9/?.,-]+')
+fix_re = re.compile(r"[^a-z0-9/'?.,-]+")
+num_re = re.compile(r'[0-9]+')
+dash_re = re.compile(r'-+')
+
+def fix_word(word):
+    word = word.lower()
+    word = fix_re.sub('-', word).strip('-')
+    word = num_re.sub('#', word)
+    word = dash_re.sub('-', word)
+    return word
 
 def process_notes(notes_file):
     all_words = []
     for _, raw_text in utils.mimic_data([notes_file], replace_anon='_',
                                         verbose=True):
         sentences = nltk.sent_tokenize(raw_text)
-        words = [fix_re.sub('-', w.lower()).strip('-')
-                    for sent in sentences for w in nltk.word_tokenize(sent)
-                        if any(c.isalpha() or c.isdigit() for c in w)]
+        words = [fix_word(w) for sent in sentences
+                             for w in nltk.word_tokenize(sent)
+                                 if any(c.isalpha() or c.isdigit() for c in w)]
         all_words.extend(w for w in words if w)
     return nltk.FreqDist(all_words)
 
