@@ -37,7 +37,6 @@ print
 print 'FINAL'
 print 'Top 100:', fd.most_common(100)
 print 'Vocab size:', fd.B()
-print 'Notes count:', notes
 print 'Writing FD ...',
 try:
     with open('vocab_fd.pk', 'wb') as f:
