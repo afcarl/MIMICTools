@@ -28,7 +28,7 @@ for i in range(1, len(ngrams)):
             token2 = ng[split:]
             cur_score = count**(2+alpha) / (merged[token1] * merged[token2])
             scores.append(cur_score)
-        newfd[ng] = min(scores)
+        newfd[ng] = sum(scores) / len(scores)
     ngrams[i] = newfd
 print 'Done.'
 
