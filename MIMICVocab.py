@@ -7,7 +7,7 @@ import re
 import multiprocessing
 from multiprocessing import Pool
 
-import utils
+from mimictools import utils
 
 mimic_dir = '/data/ml2/jernite/MIMIC3/Parsed/MIMIC3_split'
 #mimic_dir = '/home/ankit/devel/data/MIMIC3_split'

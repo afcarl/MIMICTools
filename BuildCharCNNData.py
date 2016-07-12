@@ -6,7 +6,7 @@ import cPickle as pickle
 import re
 from multiprocessing import Pool
 
-import utils
+from mimictools import utils
 
 train_size = 15
 valid_size = 5
