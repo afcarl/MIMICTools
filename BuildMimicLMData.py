@@ -38,6 +38,9 @@ vocab_list.insert(1, UNK) # unknown
 print 'Saving truncated vocab'
 with open(pjoin(out_dir, 'vocab.pk'), 'wb') as f:
     pickle.dump(vocab_list, f, -1)
+with open('vocab.list', 'w') as f: # for CharCNN
+    for w in vocab_list:
+        print >> f, w
 vocab_set = set(vocab_list)
 vocab_lookup = {word: idx for (idx, word) in enumerate(vocab_list)}
 
