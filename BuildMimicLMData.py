@@ -64,7 +64,7 @@ def prepare_dataset(split):
                         finalwords.append(vocab_lookup[UNK])
                 finalwords.append(vocab_lookup[EOS])
                 raw_data.extend(finalwords)
-        with open(pjoin(out_dir, 'notes_%02d.pk'), 'wb') as f:
+        with open(pjoin(out_dir, 'notes_%02d.pk' % (split,)), 'wb') as f:
             pickle.dump(raw_data, f, -1)
             print 'Wrote split', split
 
