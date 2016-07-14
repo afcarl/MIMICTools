@@ -50,6 +50,8 @@ with open(pjoin(patients_dir, 'vocab_aux.pk'), 'rb') as f:
     # loads labs, diagnoses, procedures, prescriptions
     aux_list = pickle.load(f)
 aux_list['admission_type'] = ['ELECTIVE', 'URGENT', 'NEWBORN', 'EMERGENCY']
+for feat in ['diagnoses', 'procedures', 'labs', 'prescriptions']:
+    aux_list[feat].insert(0, None) # padding value
 aux_set = {feat: set(vals) for (feat, vals) in aux_list.items()}
 aux_lookup = {feat: {val: idx for (idx, val) in enumerate(vals)}
                     for (feat, vals) in aux_list.items()}
