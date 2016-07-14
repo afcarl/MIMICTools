@@ -115,4 +115,6 @@ def prepare_dataset(split):
 
 
 p = Pool(int(.5 + (.9 * float(multiprocessing.cpu_count()))))
-p.map(prepare_dataset, range(100))
+splits = range(100)
+splits[1],splits[2] = splits[2],splits[1] # workaround to make things faster for me
+p.map(prepare_dataset, splits)
