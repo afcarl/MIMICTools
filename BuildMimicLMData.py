@@ -85,10 +85,10 @@ def prepare_dataset(split):
                 has_dod = 1 if patient['DOD'] else 0
                 has_icu_stay = 1 if admission.get('ICU_STAYS', []) else 0
                 admission_type = aux_lookup['admission_type'][admission['ADMISSION_TYPE']]
-                diagnoses = [aux_lookup['diagnoses'][d['ICD9_CODE']] for d in admission.get('DIAGNOSES', [])]
-                procedures = [aux_lookup['procedures'][d['ICD9_CODE']] for d in admission.get('PROCEDURES', [])]
-                labs = [aux_lookup['labs'][d['ITEMID']] for d in admission.get('LABS', [])]
-                prescriptions = [aux_lookup['prescriptions'][d['NDC']] for d in admission.get('PRESCRIPTIONS', [])]
+                diagnoses = list(set([aux_lookup['diagnoses'][d['ICD9_CODE']] for d in admission.get('DIAGNOSES', [])]))
+                procedures = list(set([aux_lookup['procedures'][d['ICD9_CODE']] for d in admission.get('PROCEDURES', [])]))
+                labs = list(set([aux_lookup['labs'][d['ITEMID']] for d in admission.get('LABS', [])]))
+                prescriptions = list(set([aux_lookup['prescriptions'][d['NDC']] for d in admission.get('PRESCRIPTIONS', [])]))
             except KeyError:
                 continue
 
