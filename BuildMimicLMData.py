@@ -109,6 +109,7 @@ def prepare_dataset(split):
                 finalwords.append(vocab_lookup[EOS])
                 note_data.extend(finalwords)
             raw_data.append((note_data, gender, has_dod, has_icu_stay, admission_type, diagnoses, procedures, labs, prescriptions))
+        raw_data.sort(key=lambda x:len(x[0]))
         with open(pjoin(out_dir, 'notes_%02d.pk' % (split,)), 'wb') as f:
             pickle.dump(raw_data, f, -1)
             print 'Wrote split', split
