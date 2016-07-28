@@ -1,6 +1,6 @@
 import glob
 import nltk
-import os.path
+import os
 import cPickle as pickle
 import re
 from os.path import join as pjoin
@@ -14,6 +14,8 @@ vocab_size = 25000-2
 mimic_dir = '/data/ml2/jernite/MIMIC3/Parsed/MIMIC3_split'
 patients_dir = '/data/ml2/ankit/MIMIC3pk'
 out_dir = '/data/ml2/ankit/MIMICTools/output'
+if not os.path.exists(out_dir):
+    os.makedirs(out_dir)
 
 EOS = '+'
 UNK = '|'
