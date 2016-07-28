@@ -36,8 +36,8 @@ print 'Loading vocab FD'
 with open('vocab_fd.pk', 'rb') as f:
     vocab_fd = pickle.load(f)
 vocab_list = [k for k,v in vocab_fd.most_common(vocab_size)]
-vocab_list.insert(0, EOS) # end of sentence
-vocab_list.insert(1, UNK) # unknown
+vocab_list.insert(0, UNK) # unknown
+vocab_list.insert(1, EOS) # end of sentence
 print 'Saving truncated vocab'
 with open(pjoin(out_dir, 'vocab.pk'), 'wb') as f:
     pickle.dump(vocab_list, f, -1)
