@@ -104,13 +104,13 @@ def prepare_dataset(split):
                 prescriptions = list(set([aux_lookup['prescriptions'][d['NDC']] for d in admission.get('PRESCRIPTIONS', [])]))
 
                 for d in diagnoses:
-                    cfd['diagnoses'][admission_id][aux_list['diagnoses'][d]] += 1
+                    cfd['diagnoses'][admission_id][d] += 1
                 for p in procedures:
-                    cfd['procedures'][admission_id][aux_list['procedures'][p]] += 1
+                    cfd['procedures'][admission_id][p] += 1
                 for l in labs:
-                    cfd['labs'][admission_id][aux_list['labs'][l]] += 1
+                    cfd['labs'][admission_id][l] += 1
                 for p in prescriptions:
-                    cfd['prescriptions'][admission_id][aux_list['prescriptions'][p]] += 1
+                    cfd['prescriptions'][admission_id][p] += 1
             except KeyError:
                 continue
 
@@ -124,7 +124,7 @@ def prepare_dataset(split):
                     if not word: continue
                     if word in vocab_set:
                         finalwords.append(vocab_lookup[word])
-                        cfd['words'][admission_id][word] += 1
+                        cfd['words'][admission_id][vocab_lookup[word]] += 1
                     else:
                         finalwords.append(vocab_lookup[UNK])
                 finalwords.append(vocab_lookup[EOS])
