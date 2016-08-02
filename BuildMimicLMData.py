@@ -5,6 +5,7 @@ import cPickle as pickle
 import re
 from os.path import join as pjoin
 import multiprocessing
+import collections
 from multiprocessing import Pool
 
 from mimictools import utils as mutils
@@ -13,7 +14,7 @@ vocab_size = 25000-2
 
 mimic_dir = '/data/ml2/jernite/MIMIC3/Parsed/MIMIC3_split'
 patients_dir = '/data/ml2/ankit/MIMIC3pk'
-out_dir = '/data/ml2/ankit/MIMICTools/output'
+out_dir = 'output'
 if not os.path.exists(out_dir):
     os.makedirs(out_dir)
 
@@ -62,6 +63,7 @@ print 'Processing notes ...'
 
 def prepare_dataset(split):
     notes_file = pjoin(mimic_dir, '%02d/NOTEEVENTS_DATA_TABLE.csv' % (split,))
+    cfd = collections.defaultdict(lambda: collections.defaultdict(lambda: collections.defaultdict(int)))
     if os.path.isfile(notes_file):
         print 'Starting split', split
         with open(pjoin(patients_dir, 'patients_%02d.pk' % (split,))) as f:
@@ -93,6 +95,15 @@ def prepare_dataset(split):
                 procedures = list(set([aux_lookup['procedures'][d['ICD9_CODE']] for d in admission.get('PROCEDURES', [])]))
                 labs = list(set([aux_lookup['labs'][d['ITEMID']] for d in admission.get('LABS', [])]))
                 prescriptions = list(set([aux_lookup['prescriptions'][d['NDC']] for d in admission.get('PRESCRIPTIONS', [])]))
+
+                for d in diagnoses:
+                    cfd['diagnoses'][admission][aux_list['diagnoses'][d]] += 1
+                for p in procedures:
+                    cfd['procedures'][admission][aux_list['procedures'][p]] += 1
+                for l in labs:
+                    cfd['labs'][admission][aux_list['labs'][l]] += 1
+                for p in prescriptions:
+                    cfd['prescriptions'][admission][aux_list['prescriptions'][p]] += 1
             except KeyError:
                 continue
 
@@ -106,6 +117,7 @@ def prepare_dataset(split):
                     if not word: continue
                     if word in vocab_set:
                         finalwords.append(vocab_lookup[word])
+                        cfd['words'][admission][word] += 1
                     else:
                         finalwords.append(vocab_lookup[UNK])
                 finalwords.append(vocab_lookup[EOS])
@@ -115,9 +127,16 @@ def prepare_dataset(split):
         with open(pjoin(out_dir, 'notes_%02d.pk' % (split,)), 'wb') as f:
             pickle.dump(raw_data, f, -1)
             print 'Wrote split', split
+    return cfd
 
 
 p = Pool(int(.5 + (.9 * float(multiprocessing.cpu_count()))))
 splits = range(100)
 splits[1],splits[2] = splits[2],splits[1] # workaround to make things faster for me
-p.map(prepare_dataset, splits)
+cfds = p.map(prepare_dataset, splits)
+cfd = {}
+for c ub cfds:
+    cfd.update(c)
+with open('cfd.pk', 'wb') as f:
+    pickle.dump(cfd, f, -1)
+    print 'Wrote CFD'
