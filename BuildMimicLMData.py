@@ -61,9 +61,16 @@ aux_lookup = {feat: {val: idx for (idx, val) in enumerate(vals)}
 
 print 'Processing notes ...'
 
+
+def dd2():
+    return collections.defaultdict(int)
+
+def dd1():
+    return collections.defaultdict(dd2)
+
 def prepare_dataset(split):
     notes_file = pjoin(mimic_dir, '%02d/NOTEEVENTS_DATA_TABLE.csv' % (split,))
-    cfd = collections.defaultdict(lambda: collections.defaultdict(lambda: collections.defaultdict(int)))
+    cfd = collections.defaultdict(dd1)
     if os.path.isfile(notes_file):
         print 'Starting split', split
         with open(pjoin(patients_dir, 'patients_%02d.pk' % (split,))) as f:
@@ -97,13 +104,13 @@ def prepare_dataset(split):
                 prescriptions = list(set([aux_lookup['prescriptions'][d['NDC']] for d in admission.get('PRESCRIPTIONS', [])]))
 
                 for d in diagnoses:
-                    cfd['diagnoses'][admission][aux_list['diagnoses'][d]] += 1
+                    cfd['diagnoses'][admission_id][aux_list['diagnoses'][d]] += 1
                 for p in procedures:
-                    cfd['procedures'][admission][aux_list['procedures'][p]] += 1
+                    cfd['procedures'][admission_id][aux_list['procedures'][p]] += 1
                 for l in labs:
-                    cfd['labs'][admission][aux_list['labs'][l]] += 1
+                    cfd['labs'][admission_id][aux_list['labs'][l]] += 1
                 for p in prescriptions:
-                    cfd['prescriptions'][admission][aux_list['prescriptions'][p]] += 1
+                    cfd['prescriptions'][admission_id][aux_list['prescriptions'][p]] += 1
             except KeyError:
                 continue
 
@@ -117,7 +124,7 @@ def prepare_dataset(split):
                     if not word: continue
                     if word in vocab_set:
                         finalwords.append(vocab_lookup[word])
-                        cfd['words'][admission][word] += 1
+                        cfd['words'][admission_id][word] += 1
                     else:
                         finalwords.append(vocab_lookup[UNK])
                 finalwords.append(vocab_lookup[EOS])
@@ -130,13 +137,28 @@ def prepare_dataset(split):
     return cfd
 
 
+def merge_dict(d1, d2):
+    """
+    Modifies d1 in-place to contain values from d2.  If any value
+    in d1 is a dictionary (or dict-like), *and* the corresponding
+    value in d2 is also a dictionary, then merge them in-place.
+    """
+    for k,v2 in d2.items():
+        v1 = d1.get(k) # returns None if v1 has no value for this key
+        if ( isinstance(v1, collections.Mapping) and 
+             isinstance(v2, collections.Mapping) ):
+            merge_dict(v1, v2)
+        else:
+            d1[k] = v2
+
+
 p = Pool(int(.5 + (.9 * float(multiprocessing.cpu_count()))))
 splits = range(100)
 splits[1],splits[2] = splits[2],splits[1] # workaround to make things faster for me
 cfds = p.map(prepare_dataset, splits)
 cfd = {}
-for c ub cfds:
-    cfd.update(c)
+for c in cfds:
+    merge_dict(cfd, c)
 with open('cfd.pk', 'wb') as f:
     pickle.dump(cfd, f, -1)
     print 'Wrote CFD'
